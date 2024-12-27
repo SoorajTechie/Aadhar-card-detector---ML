@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aadhaar Card Detector</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #image-preview {
+            margin-top: 20px;
+            max-width: 300px;
+            max-height: 300px;
+            border: 1px solid #ccc;
+        }
+        #label-container div {
+            margin: 5px;
+            font-size: 18px;
+        }
+    </style>
+    
+</head>
+<body>
+    <h1 style="background-color: blue; color: white;">Aadhaar Card Detector </h1>
+    <input type="file" accept="image/*" onchange="loadFile(event)">
+    <br>
+    <img id="image-preview" src="" alt="Document Preview">
+    <br>
+    <div id="label-container"></div>
+    <p style="color: rgb(119, 114, 108);">Developed By - soorajtechie.github.io</p>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <script type="text/javascript">
+        const URL = "./my_model/";
+
+        let model, labelContainer, maxPredictions;
+
+        async function init() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            model = await tmImage.load(modelURL, metadataURL);
+            maxPredictions = model.getTotalClasses();
+
+            labelContainer = document.getElementById("label-container");
+            for (let i = 0; i < maxPredictions; i++) {
+                labelContainer.appendChild(document.createElement("div"));
+            }
+        }
+
+        async function predict(imageElement) {
+            const prediction = await model.predict(imageElement);
+            for (let i = 0; i < maxPredictions; i++) {
+                const classPrediction =
+                    prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+                labelContainer.childNodes[i].innerHTML = classPrediction;
+            }
+        }
+
+        function loadFile(event) {
+            const image = document.getElementById("image-preview");
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function() {
+                image.src = reader.result;
+                image.onload = function () {
+                    predict(image);
+                }
+            }
+            reader.readAsDataURL(file);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
